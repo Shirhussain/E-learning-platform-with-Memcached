@@ -1,0 +1,50 @@
+[
+{
+  "model": "courses.subject",
+  "pk": 1,
+  "fields": {
+    "title": "Math",
+    "slug": "math"
+  }
+},
+{
+  "model": "courses.subject",
+  "pk": 2,
+  "fields": {
+    "title": "Pyhsics",
+    "slug": "pyhsics"
+  }
+},
+{
+  "model": "courses.subject",
+  "pk": 3,
+  "fields": {
+    "title": "Computer",
+    "slug": "computer"
+  }
+},
+{
+  "model": "courses.subject",
+  "pk": 4,
+  "fields": {
+    "title": "Web developemnt",
+    "slug": "web-developemnt"
+  }
+},
+{
+  "model": "courses.subject",
+  "pk": 5,
+  "fields": {
+    "title": "Cemistery",
+    "slug": "cemistery"
+  }
+},
+{
+  "model": "courses.subject",
+  "pk": 6,
+  "fields": {
+    "title": "Mobile develpement",
+    "slug": "mobile-develpement"
+  }
+}
+]
