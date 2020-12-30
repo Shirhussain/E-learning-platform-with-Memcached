@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
+from .fields import OrderField
+
 
 class Subject(models.Model):
     """Model definition for Subject."""
@@ -48,19 +50,22 @@ class Course(models.Model):
 class Module(models.Model):
     """Model definition for Module."""
 
-    courses = models.ForeignKey(Course, verbose_name=_("Course"), related_name="modules", on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, verbose_name=_("Course"), related_name="modules", on_delete=models.CASCADE)
     title   = models.CharField(_("Title"), max_length=200)
     description = models.TextField(_("Description"))
+    order = OrderField(blank=True, for_fields=['course'])
+
 
     class Meta:
         """Meta definition for Module."""
         
+        ordering = ['order']
         verbose_name = 'Module'
         verbose_name_plural = 'Modules'
 
     def __str__(self):
         """Unicode representation of Module."""
-        return self.title
+        return f'{self.order}, {self.title}'
 
 
 class Content(models.Model):
@@ -70,6 +75,7 @@ class Content(models.Model):
     - use different model for each type of content
     """
     module = models.ForeignKey(Module, related_name='contents', on_delete=models.CASCADE)
+    order = OrderField(blank=True, for_fields=['module'])
     content_type = models.ForeignKey(ContentType, verbose_name=_("Content type"),
                                     # model__in lookup is going to filter the query to the content obj
                                     # with the model attribute which is 'text', 'video', 'image' and 'file'
@@ -87,6 +93,7 @@ class Content(models.Model):
     class Meta:
         """Meta definition for Content."""
 
+        ordering = ['order']
         verbose_name = 'Content'
         verbose_name_plural = 'Contents'
 
@@ -130,4 +137,3 @@ class Video(ItemBase):
 
 class Image(ItemBase):
     file = models.FileField(_("File"), upload_to='Uploads/courses/Images', max_length=100)
-    
