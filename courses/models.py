@@ -44,7 +44,7 @@ class Course(models.Model):
 
     def __str__(self):
         """Unicode representation of Course."""
-        return self.subject
+        return str(self.subject)
 
 
 class Module(models.Model):

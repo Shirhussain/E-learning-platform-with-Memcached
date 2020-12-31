@@ -1,5 +1,7 @@
 from django.shortcuts import render
-from django.views.generic.list import ListView, CreateView, UpdateView, DeleteView, EditView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+# to know more about django-braces you have check this out https://django-braces.readthedocs.io/
+from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
 
 from . models import Course
@@ -25,30 +27,38 @@ class OwnerEditMixin(object):
         return super(OwnerEditMixin, self).form_valid(form)
 
 
-class OwnerCourseMixin(OwnerMixin):
+class OwnerCourseMixin(OwnerMixin, LoginRequiredMixin):
     model = Course
 
 
-class OwnerCourseEditMixin(OwnerCourseEditMixin, OwnerEditMixin):
+class OwnerCourseEditMixin(OwnerCourseMixin, OwnerEditMixin):
     fields = ['subject', 'title', 'slug', 'overview']
-    success_url = reverse_lazy('manage_course_list')
-    template_name = 'courses/manage/course/from.html'
+    success_url = reverse_lazy('courses:manage_course_list')
+    template_name = 'courses/manage/course/form.html'
 
 
 class ManageCourseListView(OwnerCourseMixin, ListView):
     template_name = 'courses/manage/course/list.html'
 
 
-class CourseCreateView(OwnerCourseMixin, CreateView):
+# you need to go in '/admin' and create a group for example by the name of 'Instaractor' 
+# then give some permissions like aded course and ...
+class CourseCreateView(PermissionRequiredMixin, OwnerCourseEditMixin, CreateView):
+    permission_required = 'courses.add_course' 
+
+
+class CourseUpdateView(PermissionRequiredMixin, OwnerCourseEditMixin, UpdateView):
+    permission_required = 'courses.change_course'
+
+
+class CourseDeleteView(PermissionRequiredMixin, OwnerCourseMixin, DeleteView):
+    success_url = reverse_lazy('courses:manage_course_list')
+    template_name = 'courses/manage/course/delete.html'
+    permission_required = 'courses.delete_course'
+    # template_name = 'courses/manage/module/formset.html'
+
+
+class CourseModuleUpdateView(UpdateView):
     pass 
-
-
-class CourseUpdateView(OwnerCourseMixin, UpdateView):
-    pass 
-
-
-class CourseDeleteView(OwnerCourseMixin, DeleteView):
-    success_url = reverse_lazy('manage_course_list')
-    template_name = 'courses/manage/course/list.html'
 
 
