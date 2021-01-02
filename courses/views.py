@@ -4,8 +4,10 @@ from django.views.generic.base import TemplateResponseMixin, View
 # to know more about django-braces you have check this out https://django-braces.readthedocs.io/
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin
 from django.urls import reverse_lazy
+from django.forms.models import modelform_factory
+from django.apps import apps
 
-from . models import Course
+from . models import Course, Module, Content
 from . forms import ModuleFormSet
 
 
@@ -86,3 +88,92 @@ class CourseModuleUpdateView(TemplateResponseMixin, View):
             formset.save()
             return redirect('courses:manage_course_list')
         return self.render_to_response({'course':self.course, 'formset': formset})
+
+
+# it will alow as to create and update diffrent models
+# https://ccbv.co.uk/projects/Django/3.0/django.views.generic.base/TemplateResponseMixin/
+class ContentCreateUpdateView(TemplateResponseMixin, View):
+    module = None 
+    model = None 
+    obj = None 
+    template_name = 'courses/manage/content/form.html'
+
+    def get_model(self, model_name):
+        # here we check if the given model is one of the four content model 
+        if model_name in ['text', 'image', 'video', 'file']:
+            return apps.get_model(app_label='courses', model_name=model_name)
+        return None
+    
+    def get_form(self, model, *args, **kwargs):
+        # i build a dynamic form with form_factory 
+        # since i specified model only for 'image', 'file', 'video' and 'text' 
+        # so i use exclude parameter to specify common field to exclude from the field
+        Form = modelform_factory(
+            model,
+            exclude=['owner', 'order', 'created', 'updated']
+        )
+        return Form(*args, **kwargs)
+
+    # dispatch receive the url parametter to store the corresponding module 
+    # module_id = the id for the module of the content which associated with 
+    # model_name = the model name for create/update
+    # id = the id of teh object which going to be update or create 
+    def dispatch(self, request, module_id, model_name, id=None):
+        self.module = get_object_or_404(
+                                        Module,
+                                        id=module_id,
+                                        course__owner=request.user
+                                        )
+        self.model = self.get_model(model_name)
+        if id:
+            self.obj = get_object_or_404(
+                                        self.model,
+                                        id=id,
+                                        owner = request.user 
+                                        )
+        return super(ContentCreateUpdateView, self).dispatch(request, module_id, model_name, id)
+
+    def get(self, request, module_id, model_name, id=None):
+        form = self.get_form(self.model, instance=self.obj) 
+        return self.render_to_response({
+                                        'form': form,
+                                        'object': self.obj
+                                        })
+    
+    def post(self, request, module_id, model_name, id=None):
+        form = self.get_form(
+                            self.model, 
+                            instance=self.obj, 
+                            data = request.POST, 
+                            files = request.FILES
+                            )
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.owner = request.user 
+            obj.save()
+            if not id:
+                # new Content 
+                # if id doesn't exist we know that user is going to create a new obj 
+                Content.objects.create(
+                                        module = self.model,
+                                        item = obj 
+                )
+            return redirect('courses:module_content_list', self.module.id)
+        return self.render_to_response({
+                                        'form': form, 
+                                        'object': self.obj
+                                        })
+
+
+class ContentDeleteView(View):
+    def post(self, request, id):
+        content = get_object_or_404(
+                                    Content,
+                                    id=id,
+                                    module__course__owner=request.user 
+                                    )
+        module = content.module
+        content.item.delete()
+        content.delete()
+        return redirect('courses:moduel_content_list', module.id)
+        

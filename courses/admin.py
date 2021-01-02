@@ -18,3 +18,4 @@ class CouseAdmin(admin.ModelAdmin):
     list_filter  = ['created', 'subject']
     search_fields = ['title', 'subject', 'overview']
     prepopulated_fields = {'title': ('slug', )}
+    inlines = [ModuleInline]
