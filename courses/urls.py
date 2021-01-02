@@ -12,8 +12,9 @@ urlpatterns = [
 
     path('module/<int:module_id>/content/<str:model_name>/create/',
         views.ContentCreateUpdateView.as_view(), name='module_content_create'),
-        
     path('module/<int:module_id>/content/<str:model_name>/<int:id>/',
         views.ContentCreateUpdateView.as_view(), name='module_content_update'),
+    path('content/<int:id>/delete/', views.ContentDeleteView.as_view(), name='module_content_delete'),
+    path('module/<int:module_id>/', views.ModuleContentListView.as_view(), name='module_content_list'),
 
 ]

@@ -132,7 +132,7 @@ class ContentCreateUpdateView(TemplateResponseMixin, View):
                                         owner = request.user 
                                         )
         return super(ContentCreateUpdateView, self).dispatch(request, module_id, model_name, id)
-
+        
     def get(self, request, module_id, model_name, id=None):
         form = self.get_form(self.model, instance=self.obj) 
         return self.render_to_response({
@@ -155,7 +155,7 @@ class ContentCreateUpdateView(TemplateResponseMixin, View):
                 # new Content 
                 # if id doesn't exist we know that user is going to create a new obj 
                 Content.objects.create(
-                                        module = self.model,
+                                        module = self.module,
                                         item = obj 
                 )
             return redirect('courses:module_content_list', self.module.id)
@@ -175,5 +175,19 @@ class ContentDeleteView(View):
         module = content.module
         content.item.delete()
         content.delete()
-        return redirect('courses:moduel_content_list', module.id)
-        
+        return redirect('courses:module_content_list', module.id)
+    
+    def get_queryset(self):
+        qs = super(ManageCourseListView, self).get_queryset()
+        return qs.filter(owner=self.request.user)
+
+
+class ModuleContentListView(TemplateResponseMixin, View):
+    template_name = 'courses/manage/module/content_list.html'
+
+    def get(self, request, module_id):
+        module = get_object_or_404(
+                                    Module,
+                                    id=module_id,
+                                    course__owner=request.user)
+        return self.render_to_response({'module': module})
