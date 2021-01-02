@@ -10,6 +10,7 @@ from django.db.models import Count
 
 from . models import Course, Module, Content, Subject
 from . forms import ModuleFormSet
+from students.forms import CourseEnrollForm
 
 
 
@@ -247,3 +248,10 @@ class CourseListView(TemplateResponseMixin, View):
 class CourseDetailView(DetailView):
     model = Course
     template_name = "courses/course/detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(CourseDetailView, self).get_context_data(**kwargs)
+        # i initialized the hidden form field with current course object, so it can be submitted directly
+        context["enroll_form"] = CourseEnrollForm(initial={'course': self.object})
+        return context
+    

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     
     # myapp 
     'courses',
+    'students',
 ]
 
 MIDDLEWARE = [
@@ -124,3 +125,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+from django.urls import reverse_lazy
+LOGIN_REDIRECT_URL = reverse_lazy('students:student_course_list')

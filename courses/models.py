@@ -34,6 +34,7 @@ class Course(models.Model):
     slug    = models.SlugField(_("Slug"), max_length=210)
     overview = models.TextField(_("Overview"))
     created = models.DateTimeField(_("Created"), auto_now_add=True)
+    students = models.ManyToManyField(User, verbose_name=_("Students"), related_name="courses_joined", blank=True)
     
     class Meta:
         """Meta definition for Course."""
