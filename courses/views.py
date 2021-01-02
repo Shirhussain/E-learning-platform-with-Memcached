@@ -1,13 +1,14 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
 from django.views.generic.base import TemplateResponseMixin, View
 # to know more about django-braces you have check this out https://django-braces.readthedocs.io/
 from braces.views import LoginRequiredMixin, PermissionRequiredMixin, CsrfExemptMixin, JsonRequestResponseMixin
 from django.urls import reverse_lazy
 from django.forms.models import modelform_factory
 from django.apps import apps
+from django.db.models import Count 
 
-from . models import Course, Module, Content
+from . models import Course, Module, Content, Subject
 from . forms import ModuleFormSet
 
 
@@ -217,3 +218,32 @@ class ContentOrderView(CsrfExemptMixin, JsonRequestResponseMixin, View):
                 module__course__owner=request.user
             ).update(order=order)
         return self.render_json_response({'saved': 'OK'})
+
+class CourseListView(TemplateResponseMixin, View):
+    model = Course 
+    template_name = "courses/course/list.html"
+
+    def get(self, request, subject=None):
+        # retrive all subject with total number of courses contain in each subject
+        subjects = Subject.objects.annotate(
+            total_courses = Count('courses')
+        )
+        courses = Course.objects.annotate(
+            total_modules = Count('modules')
+        )
+        if subject:
+            # if slug subject parameter is given then we retrive the coresponding subject
+            subject = get_object_or_404(Subject, slug=subject)
+            course  = courses.filter(subject=subject)
+        return self.render_to_response(
+            {
+            'subjects': subjects,
+            'subject': subject,
+            'courses': courses
+            }
+        )
+
+
+class CourseDetailView(DetailView):
+    model = Course
+    template_name = "courses/course/detail.html"
