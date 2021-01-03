@@ -41,6 +41,9 @@ INSTALLED_APPS = [
     # myapp 
     'courses',
     'students',
+
+    # third party
+    'embed_video',
 ]
 
 MIDDLEWARE = [
@@ -125,6 +128,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media/"
 
 from django.urls import reverse_lazy
 LOGIN_REDIRECT_URL = reverse_lazy('students:student_course_list')
