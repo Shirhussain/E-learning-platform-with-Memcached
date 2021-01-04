@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # third party
     'embed_video',
     'memcache_status',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -224,3 +225,24 @@ CACHE_MIDDLEWARE_ALIAS = 'default'
 CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes which is the timeout
 CACHE_MIDDLEWARE_KEY_PREFIX = 'config'
 # my site right now cache all my site which has a get request
+
+
+# django restframework
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}
+
+#   REST FRAMEWOK AUTHENTICATION BACKENDS 
+# BASIC AUTHENTICATION:
+    # user and password send by client 
+    # encoded by base 64
+# TOKEN AUTHENTICATION:
+    # Token model used to store user token 
+    # Tokens included in Authorization HTTP header
+# SESSION AUTHENTICATION:
+    # IT'S user django session backend 
+    # this is usefull when you are gonna perform authenticated ajax request to teh API
