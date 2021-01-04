@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django.forms.models import modelform_factory
 from django.apps import apps
 from django.db.models import Count 
+from django.core.cache import cache
 
 from . models import Course, Module, Content, Subject
 from . forms import ModuleFormSet
@@ -225,17 +226,37 @@ class CourseListView(TemplateResponseMixin, View):
     template_name = "courses/course/list.html"
 
     def get(self, request, subject=None):
-        # retrive all subject with total number of courses contain in each subject
-        subjects = Subject.objects.annotate(
-            total_courses = Count('courses')
-        )
-        courses = Course.objects.annotate(
+        # here i'm gonna implement cache system
+        subjects = cache.get('all_subjects')
+        if not subjects:
+            # retrive all subject with total number of courses contain in each subject
+            subjects = Subject.objects.annotate(
+                total_courses = Count('courses')
+            )
+            # if subjects si not cached so like this we can set to cache
+            cache.set('all_subjects', subjects)
+        all_courses = Course.objects.annotate(
             total_modules = Count('modules')
         )
         if subject:
             # if slug subject parameter is given then we retrive the coresponding subject
             subject = get_object_or_404(Subject, slug=subject)
-            course  = courses.filter(subject=subject)
+            # cacheing based on dynamic data:
+            # many time you want to cache someting which is based on dynamic data in the case 
+            # you have to build dynamic keys to contain all information require uniquely 
+            # identify the cache data
+            # here is the key which i mentioned before
+            # if there is a subject i build  a key dynamically
+            key = 'subject_{}_courses'.format(subject.id)
+            courses = cache.get(key)
+            if not courses:
+                courses  = all_courses.filter(subject=subject)
+                cache.set(key, courses)
+        else:
+            courses = cache.get('all_courses')
+            if not courses:
+                courses = all_courses
+                cache.set('all_courses', courses)
         return self.render_to_response(
             {
             'subjects': subjects,

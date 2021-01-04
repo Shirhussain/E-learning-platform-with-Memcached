@@ -44,12 +44,17 @@ INSTALLED_APPS = [
 
     # third party
     'embed_video',
+    'memcache_status',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # if you want to cache your entire site so add line bellow to your middleare
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # also this line for caching
+    'django.middleware.cache.FetchFromCacheMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -134,3 +139,88 @@ MEDIA_ROOT = BASE_DIR / "media/"
 
 from django.urls import reverse_lazy
 LOGIN_REDIRECT_URL = reverse_lazy('students:student_course_list')
+
+
+# using the cache framework 
+    # try to find the requested data in cache 
+    # i found  return the cache data 
+    # if not:
+        # perform the query or processing the required to obtain the data
+        # save the generated data in cache 
+        # return data 
+
+
+# django backend cache 
+    # backend.Memcached
+    # backend.db.DatabaseChase
+    # backend.filebased.FileBasedCache
+    # backends.locmem.LocMemCache ---> local memory cache backend
+    # backend.dummy.DummyCache ---> it's only intended for development 
+    # also you can use redis --> which instagram using it right now
+
+# install memcache from this source:
+# https://memcached.org/downloads
+
+# for me i use linux so here is the way:
+# sudo apt install memcached
+# sudo apt install libmemcached-tools
+
+#       CACHE SETTINGS
+# CACHES
+# CACHES_MIDDLEWARE_ALIAS
+# CACHES_MIDDLEWARE_KEY_PERFIX
+# CACHES_MIDDLEWARE_SECONDS
+
+#           cache dictionary
+# BACKEND 
+# KEY_FUNCTION
+# KEY_PERFIX
+# LOCATION
+# OPTIONS
+# TIMEOUT
+
+
+#       CACHE LEVELS 
+#  Low level cache API  ---> it's provide the hights, alow you to cache specific queries or calculations
+# pre-view cache -----> provide cacheing for individual views
+# template cache --->  alow you to cache template fragments
+# per site cache ----> the highest level cache which cache your entire site
+
+#           STORING OBJECT IN CACHE 
+# from django.core.cache import caches
+# my_cache = caches['alias']
+
+#for example i can do some example --> then open  `python manage.py shell` and execute the following commands:
+    # from django.core.cache import cache
+    # cache.set('musician', 'Django Reinhardt', 20)
+    # cache.get('musician')
+    # cache.get('musician')
+
+    # or 
+    # from courses.modles import Subject 
+    # subjects = Subject.objects.all()
+    # cache.set('all_subjects', subjects)
+    # cache.get('all_subjects')
+
+#       USING TEMPLATE TAG
+#  {% cache 300 fragment_name %}
+# .......
+# {% endcache %}
+
+# {% load cache %}
+# {% cache %}
+
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
+# whn you added cache to entire site so add this sitting after you added to your middleware
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 60 * 15  # 15 minutes which is the timeout
+CACHE_MIDDLEWARE_KEY_PREFIX = 'config'
+# my site right now cache all my site which has a get request
